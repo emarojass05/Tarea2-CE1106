@@ -1,0 +1,35 @@
+#lang racket/gui
+
+(define frame (new frame% [label "Tic Tac Toe"] [width 400] [height 400]))
+
+(define m 3)  ;; ejemplo para un tablero 3x3
+(define n 3)
+
+(define canvas (new canvas% [parent frame] [min-width (* 100 m)] [min-height (* 100 n)]))
+
+;; Dibujar el tablero
+(define (draw-board dc)
+  (send dc set-pen "black" 2 'solid)
+  (for ([i (in-range 1 m)])
+    (send dc draw-line (* i (/ (send canvas get-width) m)) 0 (* i (/ (send canvas get-width) m)) (send canvas get-height)))
+  (for ([i (in-range 1 n)])
+    (send dc draw-line 0 (* i (/ (send canvas get-height) n)) (send canvas get-width) (* i (/ (send canvas get-height) n)))))
+
+;; Manejar el click del mouse
+(define (on-click canvas event)
+  (define x (send event get-x))
+  (define y (send event get-y))
+  ;; Aquí agregar la lógica para manejar dónde se hace el click y colocar "X"
+  ;; y también la lógica para que la máquina coloque "O"
+  (printf "Click en posición: ~a, ~a\n" x y))
+
+;; Conectar los eventos de mouse
+(send canvas on-event (lambda (event)
+                        (on-click canvas event)))
+
+;; Mostrar el tablero
+(define (show-game)
+  (send frame show #t)
+  (send canvas on-paint draw-board))
+
+(show-game)
