@@ -29,7 +29,11 @@
       (let ((new-mat (markPosition mat i j 1)))  ; Marcamos con '1' para el jugador
         (display "\nTablero después del turno del jugador:\n")
         (printMat new-mat)
-        (machineTurn new-mat)))))
+        (if (lineComplete new-mat)
+            (begin
+              (display "¡Línea completa! Reiniciando la matriz...\n")
+              (playerTurn (createMat (length new-mat) (length (list-ref new-mat 0)))))  ; Reinicia la matriz
+            (machineTurn new-mat))))))
 
 
 (define (machineTurn mat)
@@ -37,7 +41,11 @@
   (let ((new-mat (greedyMove mat)))  ; Usamos el algoritmo codicioso para el turno de la máquina
     (display "\nTablero después del turno de la máquina:\n")
     (printMat new-mat)
-    (playerTurn new-mat)))  ; Vuelve a llamar al turno del jugador
+    (if (lineComplete new-mat)
+        (begin
+          (display "¡Línea completa! Reiniciando la matriz...\n")
+          (playerTurn (createMat (length new-mat) (length (list-ref new-mat 0)))))  ; Reinicia la matriz
+        (playerTurn new-mat))))
 
 
 ;; Simplificación de `markPosition`
@@ -191,6 +199,71 @@
                   (= (list-ref (list-ref mat (+ i 1)) (- max (+ i 1))) symbol)
                   (= (list-ref (list-ref mat (+ i 2)) (- max (+ i 2))) 0))
              (markPosition mat (+ i 2) (- max (+ i 2)) 2))
+            (else (loop (+ i 1)))))))
+
+
+;; Verifica si hay una línea completa de tres
+(define (lineComplete mat)
+  (or (check-line-complete-horizontal mat)
+      (check-line-complete-vertical mat)
+      (check-line-complete-diagonal-main mat)
+      (check-line-complete-diagonal-secondary mat)))
+
+
+;; Verifica si hay una línea completa horizontal
+(define (check-line-complete-horizontal mat)
+  (let loop ((row 0))
+    (cond ((>= row (length mat)) #f)
+          ((check-horizontal-line-complete mat row) #t)
+          (else (loop (+ row 1))))))
+
+(define (check-horizontal-line-complete mat row)
+  (let loop ((col 0))
+    (cond ((>= col (- (length (list-ref mat 0)) 2)) #f)
+          ((and (= (list-ref (list-ref mat row) col) 1)
+                (= (list-ref (list-ref mat row) (+ col 1)) 1)
+                (= (list-ref (list-ref mat row) (+ col 2)) 1))
+           #t)
+          (else (loop (+ col 1))))))
+
+
+;; Verifica si hay una línea completa vertical
+(define (check-line-complete-vertical mat)
+  (let loop ((col 0))
+    (cond ((>= col (length (list-ref mat 0))) #f)
+          ((check-vertical-line-complete mat col) #t)
+          (else (loop (+ col 1))))))
+
+(define (check-vertical-line-complete mat col)
+  (let loop ((row 0))
+    (cond ((>= row (- (length mat) 2)) #f)
+          ((and (= (list-ref (list-ref mat row) col) 1)
+                (= (list-ref (list-ref mat (+ row 1)) col) 1)
+                (= (list-ref (list-ref mat (+ row 2)) col) 1))
+           #t)
+          (else (loop (+ row 1))))))
+
+
+;; Verifica si hay una línea completa diagonal principal
+(define (check-line-complete-diagonal-main mat)
+  (let loop ((i 0))
+    (cond ((>= i (- (length mat) 2)) #f)
+          ((and (= (list-ref (list-ref mat i) i) 1)
+                (= (list-ref (list-ref mat (+ i 1)) (+ i 1)) 1)
+                (= (list-ref (list-ref mat (+ i 2)) (+ i 2)) 1))
+           #t)
+          (else (loop (+ i 1))))))
+
+
+;; Verifica si hay una línea completa diagonal secundaria
+(define (check-line-complete-diagonal-secondary mat)
+  (let loop ((i 0))
+    (let ((max (- (length mat) 1)))  ; Calcula el índice máximo
+      (cond ((>= i (- (length mat) 2)) #f)
+            ((and (= (list-ref (list-ref mat i) (- max i)) 1)
+                  (= (list-ref (list-ref mat (+ i 1)) (- max (+ i 1))) 1)
+                  (= (list-ref (list-ref mat (+ i 2)) (- max (+ i 2))) 1))
+             #t)
             (else (loop (+ i 1)))))))
 
 
