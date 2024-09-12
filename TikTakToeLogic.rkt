@@ -42,7 +42,8 @@
         (begin
           (display "¡Línea completa! Reiniciando la matriz...\n")
           (playerTurn (createMat (length new-mat) (length (list-ref new-mat 0)))))  ; Reinicia la matriz
-        (playerTurn new-mat))))
+        #f)))  ; No hace nada si no hay línea completa
+
 
 
 ;; Simplificación de `markPosition`

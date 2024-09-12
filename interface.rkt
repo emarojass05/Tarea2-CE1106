@@ -54,7 +54,7 @@
     (define fila (quotient y ancho-alto))
     (define columna (quotient x ancho-alto))
     (when (and (< fila m) (< columna n))
-      (playerTurn (createMat m n) columna fila)
+      (playerTurn (createMat m n) fila columna)
       (printf "Coordenada del cuadro clicado: (~a, ~a)\n" columna fila))))  ;; Ahora imprime (columna, fila)
 
 ;; Crear una subclase de canvas% para manejar eventos de mouse, pasando m, n y el tamaño del cuadro
