@@ -1,13 +1,13 @@
 #lang racket
 
-(provide TTT)
+(provide TTT playerTurn createMat)
 
 (define (TTT m n)
   (cond ((< m 3) (display "El mínimo de la matriz es 3x3"))
         ((< n 3) (display "El mínimo de la matriz es 3x3"))
         ((> n 10) (display "El máximo de la matriz es 10x10"))
         ((> m 10) (display "El máximo de la matriz es 10x10"))
-        (else (playerTurn (createMat m n)))))
+        (else (createMat m n))))
 
 
 (define (createMat m n)
@@ -22,20 +22,15 @@
       (cons 0 (createRow (- n 1)))))
 
 
-(define (playerTurn mat)
-  (display "Turno del jugador:\n")
-  (display "Ingrese la fila (1-indexado):\n")
-  (let ((i (sub1 (read))))  ; Convertir de 1-indexado a 0-indexado
-    (display "Ingrese la columna (1-indexado):\n")
-    (let ((j (sub1 (read))))  ; Convertir de 1-indexado a 0-indexado
-      (let ((new-mat (markPosition mat i j 1)))  ; Marcamos con '1' para el jugador
-        (display "\nTablero después del turno del jugador:\n")
-        (printMat new-mat)
-        (if (lineComplete new-mat)
-            (begin
-              (display "¡Línea completa! Reiniciando la matriz...\n")
-              (playerTurn (createMat (length new-mat) (length (list-ref new-mat 0)))))  ; Reinicia la matriz
-            (machineTurn new-mat))))))
+(define (playerTurn mat i j)
+  (let ((new-mat (markPosition mat i j 1)))  
+    (display "\nTablero después del turno del jugador:\n")
+    (printMat new-mat)
+    (if (lineComplete new-mat)
+        (begin
+          (display "¡Línea completa! Reiniciando la matriz...\n")
+          (playerTurn (createMat (length new-mat) (length (list-ref new-mat 0))) i j))  ; Reinicia la matriz y pasa las coordenadas
+        (machineTurn new-mat))))
 
 
 (define (machineTurn mat)

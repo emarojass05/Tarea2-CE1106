@@ -10,7 +10,6 @@
 
 ;; Función para generar una matriz MxN para el tablero
 (define (crear-tablero m n)
-  (TTT m n)
   (for/list ((i (in-range m)))
     (for/list ((j (in-range n)))
       (if (even? (+ i j)) gris blanco))))  ;; Alternar colores (gris y blanco)
@@ -55,6 +54,7 @@
     (define fila (quotient y ancho-alto))
     (define columna (quotient x ancho-alto))
     (when (and (< fila m) (< columna n))
+      (playerTurn (createMat m n) columna fila)
       (printf "Coordenada del cuadro clicado: (~a, ~a)\n" columna fila))))  ;; Ahora imprime (columna, fila)
 
 ;; Crear una subclase de canvas% para manejar eventos de mouse, pasando m, n y el tamaño del cuadro
@@ -70,6 +70,8 @@
 (define (start-app)
   (get-matrix-size 
    (lambda (m n)
+     
+     
      ;; Crear el marco principal para la aplicación
      (define frame (new frame% (label "TicTacToe")
                          (width (min 620 (* n 120)))
@@ -84,9 +86,12 @@
                          (paint-callback
                           (lambda (canvas dc)
                             (draw-canvas canvas dc tablero 80)))))
+     
 
      ;; Mostrar el marco
-     (send frame show #t))))
+     (send frame show #t)
+     (TTT m n))))
 
 ;; Iniciar la aplicación
 (start-app)
+
