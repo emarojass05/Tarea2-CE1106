@@ -1,12 +1,11 @@
 #lang racket
 (require "TikTakToeLogic.rkt")
-
 (require racket/gui)  ; Importar la librería GUI
 (require racket/draw)  ; Importar la librería de dibujo
 
 ;; Definir colores
 (define gris (make-object color% 102 102 102))  ;; Color gris
-(define blanco (make-object color% 255 255 255))  ;; Color blanco
+(define blanco (make-object color% 255 255 255))
 
 ;; Función para generar una matriz MxN para el tablero
 (define (crear-tablero m n)
@@ -54,7 +53,7 @@
     (define fila (quotient y ancho-alto))
     (define columna (quotient x ancho-alto))
     (when (and (< fila m) (< columna n))
-      (playerTurn (createMat m n) fila columna)
+      (replace-matrix (playerTurn my-matrix fila columna))
       (printf "Coordenada del cuadro clicado: (~a, ~a)\n" columna fila))))  ;; Ahora imprime (columna, fila)
 
 ;; Crear una subclase de canvas% para manejar eventos de mouse, pasando m, n y el tamaño del cuadro
@@ -91,6 +90,13 @@
      ;; Mostrar el marco
      (send frame show #t)
      (TTT m n))))
+
+
+(define my-matrix (createMat 9 9))
+
+;; Función para reemplazar la matriz completa
+(define (replace-matrix new-matrix)
+  (set! my-matrix new-matrix))
 
 ;; Iniciar la aplicación
 (start-app)
