@@ -62,12 +62,10 @@
 ;; 4. Funciones de Marcado y Impresión
 ;; ============================
 
-(define (markPosition mat i j value)
-  (if (and (>= i 0) (< i (length mat)) (>= j 0) (< j (length (list-ref mat 0))))
-      (let* ((row (list-ref mat i))
-             (new-row (list-set row j value)))
-        (list-set mat i new-row))
-      mat))  ; Devuelve la matriz original si la posición está fuera de los límites
+(define (markPosition mat row col symbol)
+  (let ((new-row (list-set (list-ref mat row) col symbol)))
+    (list-set mat row new-row)))
+ ; Devuelve la matriz original si la posición está fuera de los límites
 
 (define (list-set lst index value)
   (cond
@@ -114,11 +112,18 @@
 ;; ===============================
 
 ;; Verifica una alineación horizontal para ganar o bloquear
+;; Verifica una alineación horizontal para ganar
 (define (check-horizontal-alignment mat symbol)
   (let loop ((row 0))
     (cond ((>= row (length mat)) #f)
-          ((check-horizontal-line mat row symbol) mat)
-          (else (loop (+ row 1))))))
+          ((let ((result (check-horizontal-line mat row symbol)))
+             (if result
+                 (begin
+                   (displayln "WIN")
+                   result)
+                 (loop (+ row 1)))))
+          (else #f))))
+
 
 (define (check-horizontal-line mat row symbol)
   (let ((n (length (list-ref mat 0))))
@@ -176,10 +181,11 @@
 ;; ===============================
 
 ;; Define las funciones de verificación de bloqueos
+;; Define las funciones de verificación de bloqueos
 (define (check-horizontal-block mat symbol)
   (let loop ((row 0))
     (cond ((>= row (length mat)) #f)
-          ((check-horizontal-line-block mat row symbol) mat)
+          ((check-horizontal-line-block mat row symbol))  ; Devuelve la matriz actualizada
           (else (loop (+ row 1))))))
 
 (define (check-horizontal-line-block mat row symbol)
@@ -189,15 +195,20 @@
             ((and (= (list-ref (list-ref mat row) col) symbol)
                   (= (list-ref (list-ref mat row) (+ col 1)) symbol)
                   (= (list-ref (list-ref mat row) (+ col 2)) 0))
+             (display "BLOQUEO HORIZONTAL\n")  ; Imprimir "BLOQUEO HORIZONTAL"
+             (printMat mat)  ; Imprimir la matriz actualizada
              (markPosition mat row (+ col 2) 2))
             (else (loop (+ col 1)))))))
 
+
+
 (define (check-vertical-block mat symbol)
   (let loop ((col 0))
-    (cond ((>= col (length (list-ref mat 0))) #f)
-          ((check-vertical-line-block mat col symbol) mat)
+    (cond ((>= col (length (list-ref mat 0))) #f)  ; Devuelve la matriz original si no se encuentra un bloqueo
+          ((check-vertical-line-block mat col symbol))  ; Devuelve la matriz actualizada
           (else (loop (+ col 1))))))
 
+;; Verifica un bloqueo vertical
 (define (check-vertical-line-block mat col symbol)
   (let ((n (length mat)))
     (let loop ((row 0))
@@ -205,9 +216,14 @@
             ((and (= (list-ref (list-ref mat row) col) symbol)
                   (= (list-ref (list-ref mat (+ row 1)) col) symbol)
                   (= (list-ref (list-ref mat (+ row 2)) col) 0))
+             (display "BLOQUEO\n")  ; Imprimir "BLOQUEO"
              (markPosition mat (+ row 2) col 2))
             (else (loop (+ row 1)))))))
 
+
+
+
+;; Verifica un bloqueo diagonal principal
 (define (check-diagonal-main-block mat symbol)
   (let ((n (length mat)))
     (let loop ((i 0))
@@ -215,9 +231,11 @@
             ((and (= (list-ref (list-ref mat i) i) symbol)
                   (= (list-ref (list-ref mat (+ i 1)) (+ i 1)) symbol)
                   (= (list-ref (list-ref mat (+ i 2)) (+ i 2)) 0))
+             (display "BLOQUEO\n")  ; Imprimir "BLOQUEO"
              (markPosition mat (+ i 2) (+ i 2) 2))
             (else (loop (+ i 1)))))))
 
+;; Verifica un bloqueo diagonal secundaria
 (define (check-diagonal-secondary-block mat symbol)
   (let ((n (length mat))
         (max (- (length (list-ref mat 0)) 1)))  ; Calcula el índice máximo
@@ -226,6 +244,7 @@
             ((and (= (list-ref (list-ref mat i) (- max i)) symbol)
                   (= (list-ref (list-ref mat (+ i 1)) (- max (+ i 1))) symbol)
                   (= (list-ref (list-ref mat (+ i 2)) (- max (+ i 2))) 0))
+             (display "BLOQUEO\n")  ; Imprimir "BLOQUEO"
              (markPosition mat (+ i 2) (- max (+ i 2)) 2))
             (else (loop (+ i 1)))))))
 
@@ -319,4 +338,4 @@
 ;; =============================
 
 ;; Ejecuta el juego
-(TTT 10 10)
+(TTT 3 3)
