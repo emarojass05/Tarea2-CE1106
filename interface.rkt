@@ -1,4 +1,5 @@
 #lang racket
+(require "TikTakToeLogic.rkt")
 
 (require racket/gui)  ; Importar la librería GUI
 (require racket/draw)  ; Importar la librería de dibujo
@@ -9,6 +10,7 @@
 
 ;; Función para generar una matriz MxN para el tablero
 (define (crear-tablero m n)
+  (TTT m n)
   (for/list ((i (in-range m)))
     (for/list ((j (in-range n)))
       (if (even? (+ i j)) gris blanco))))  ;; Alternar colores (gris y blanco)
@@ -46,6 +48,24 @@
 
   (send dlg show #t))
 
+;; Función para manejar clics de mouse y detectar las coordenadas del cuadro clicado
+(define (mouse-event-handler event m n ancho-alto)
+  (let ((x (send event get-x))
+        (y (send event get-y)))
+    (define fila (quotient y ancho-alto))
+    (define columna (quotient x ancho-alto))
+    (when (and (< fila m) (< columna n))
+      (printf "Coordenada del cuadro clicado: (~a, ~a)\n" columna fila))))  ;; Ahora imprime (columna, fila)
+
+;; Crear una subclase de canvas% para manejar eventos de mouse, pasando m, n y el tamaño del cuadro
+(define my-canvas%
+  (class canvas%
+    (init-field m n ancho-alto)
+    (define/override (on-event event)
+      (when (send event button-down?)  ;; Detectar clic izquierdo
+        (mouse-event-handler event m n ancho-alto)))
+    (super-new)))
+
 ;; Función principal para iniciar la aplicación
 (define (start-app)
   (get-matrix-size 
@@ -55,12 +75,12 @@
                          (width (min 620 (* n 120)))
                          (height (min 620 (* m 120)))))
 
-
      ;; Crear la matriz para el tablero
      (define tablero (crear-tablero m n))
 
      ;; Establecer el callback de pintado para el canvas
-     (define canvas (new canvas% (parent frame)
+     (define canvas (new my-canvas% (parent frame)
+                         (m m) (n n) (ancho-alto 80)
                          (paint-callback
                           (lambda (canvas dc)
                             (draw-canvas canvas dc tablero 80)))))

@@ -1,5 +1,7 @@
 #lang racket
 
+(provide TTT)
+
 (define (TTT m n)
   (cond ((< m 3) (display "El mínimo de la matriz es 3x3"))
         ((< n 3) (display "El mínimo de la matriz es 3x3"))
@@ -276,6 +278,3 @@
            (markPosition mat i j 2))  ; Marca '2' para la máquina
           (else (loop i (+ j 1))))))
 
-
-;; Ejecuta el juego
-(TTT 3 3)
