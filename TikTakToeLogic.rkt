@@ -65,7 +65,7 @@
 (define (markPosition mat row col symbol)
   (let ((new-row (list-set (list-ref mat row) col symbol)))
     (list-set mat row new-row)))
- ; Devuelve la matriz original si la posición está fuera de los límites
+; Devuelve la matriz original si la posición está fuera de los límites
 
 (define (list-set lst index value)
   (cond
@@ -139,7 +139,8 @@
 (define (check-vertical-alignment mat symbol)
   (let loop ((col 0))
     (cond ((>= col (length (list-ref mat 0))) #f)
-          ((check-vertical-line mat col symbol) mat)
+          ((check-vertical-line mat col symbol)
+           (begin (display "WIN") (newline) mat))  ; Imprime "WIN" y luego retorna la matriz
           (else (loop (+ col 1))))))
 
 (define (check-vertical-line mat col symbol)
@@ -149,8 +150,10 @@
             ((and (= (list-ref (list-ref mat row) col) symbol)
                   (= (list-ref (list-ref mat (+ row 1)) col) symbol)
                   (= (list-ref (list-ref mat (+ row 2)) col) 0))
-             (markPosition mat (+ row 2) col 2))
+             (markPosition mat (+ row 2) col 2)
+             #t)  ; Indica que se encontró una alineación
             (else (loop (+ row 1)))))))
+
 
 ;; Verifica una alineación diagonal principal para ganar o bloquear
 (define (check-diagonal-main-alignment mat symbol)
