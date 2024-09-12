@@ -1,3 +1,7 @@
+;; =======================
+;; 1. Funciones Principales
+;; =======================
+
 #lang racket
 
 (define (TTT m n)
@@ -8,17 +12,24 @@
         (else (playerTurn (createMat m n)))))
 
 
+;; =======================
+;; 2. Creación de la Matriz
+;; =======================
+
 (define (createMat m n)
   (if (= m 0)
       '()
       (cons (createRow n) (createMat (- m 1) n))))
-
 
 (define (createRow n)
   (if (= n 0)
       '()
       (cons 0 (createRow (- n 1)))))
 
+
+;; ==========================
+;; 3. Turnos del Jugador y Máquina
+;; ==========================
 
 (define (playerTurn mat)
   (display "Turno del jugador:\n")
@@ -35,7 +46,6 @@
               (playerTurn (createMat (length new-mat) (length (list-ref new-mat 0)))))  ; Reinicia la matriz
             (machineTurn new-mat))))))
 
-
 (define (machineTurn mat)
   (display "Turno de la máquina:\n")
   (let ((new-mat (greedyMove mat)))  ; Usamos el algoritmo codicioso para el turno de la máquina
@@ -48,14 +58,16 @@
         (playerTurn new-mat))))
 
 
-;; Simplificación de `markPosition`
+;; ============================
+;; 4. Funciones de Marcado y Impresión
+;; ============================
+
 (define (markPosition mat i j value)
   (if (and (>= i 0) (< i (length mat)) (>= j 0) (< j (length (list-ref mat 0))))
       (let* ((row (list-ref mat i))
              (new-row (list-set row j value)))
         (list-set mat i new-row))
       mat))  ; Devuelve la matriz original si la posición está fuera de los límites
-
 
 (define (list-set lst index value)
   (cond
@@ -68,12 +80,19 @@
   (for-each (lambda (row) (display row) (newline)) mat))
 
 
-;; Función para movimiento codicioso de la máquina
+;; =============================
+;; 5. Movimiento Codicioso de la Máquina
+;; =============================
+
 (define (greedyMove mat)
   (or (find-winning-move mat 2)  ; Busca una jugada ganadora para la máquina ('2')
       (find-blocking-move mat 1)  ; Si no hay jugada ganadora, busca bloquear al jugador ('1')
       (make-best-move mat)))  ; Si no hay jugadas críticas, hace el mejor movimiento disponible
 
+
+;; =============================
+;; 6. Verificación de Movimiento Ganador o de Bloqueo
+;; =============================
 
 ;; Busca una jugada ganadora para el símbolo dado (puede ser '2' para la máquina o '1' para bloquear)
 (define (find-winning-move mat symbol)
@@ -82,7 +101,6 @@
       (check-diagonal-main-alignment mat symbol)
       (check-diagonal-secondary-alignment mat symbol)))
 
-
 ;; Busca un movimiento para bloquear al jugador (símbolo 1)
 (define (find-blocking-move mat symbol)
   (or (check-horizontal-block mat symbol)
@@ -90,6 +108,10 @@
       (check-diagonal-main-block mat symbol)
       (check-diagonal-secondary-block mat symbol)))
 
+
+;; ===============================
+;; 7. Verificación de Alineaciones
+;; ===============================
 
 ;; Verifica una alineación horizontal para ganar o bloquear
 (define (check-horizontal-alignment mat symbol)
@@ -107,7 +129,6 @@
            (markPosition mat row (+ col 2) 2))
           (else (loop (+ col 1))))))
 
-
 ;; Verifica una alineación vertical para ganar o bloquear
 (define (check-vertical-alignment mat symbol)
   (let loop ((col 0))
@@ -124,7 +145,6 @@
            (markPosition mat (+ row 2) col 2))
           (else (loop (+ row 1))))))
 
-
 ;; Verifica una alineación diagonal principal para ganar o bloquear
 (define (check-diagonal-main-alignment mat symbol)
   (let loop ((i 0))
@@ -134,7 +154,6 @@
                 (= (list-ref (list-ref mat (+ i 2)) (+ i 2)) 0))
            (markPosition mat (+ i 2) (+ i 2) 2))
           (else (loop (+ i 1))))))
-
 
 ;; Verifica una alineación diagonal secundaria para ganar o bloquear
 (define (check-diagonal-secondary-alignment mat symbol)
@@ -147,6 +166,10 @@
              (markPosition mat (+ i 2) (- max (+ i 2)) 2))
             (else (loop (+ i 1)))))))
 
+
+;; ===============================
+;; 8. Verificación de Bloqueos
+;; ===============================
 
 ;; Define las funciones de verificación de bloqueos
 (define (check-horizontal-block mat symbol)
@@ -164,7 +187,6 @@
            (markPosition mat row (+ col 2) 2))
           (else (loop (+ col 1))))))
 
-
 (define (check-vertical-block mat symbol)
   (let loop ((col 0))
     (cond ((>= col (length (list-ref mat 0))) #f)
@@ -180,7 +202,6 @@
            (markPosition mat (+ row 2) col 2))
           (else (loop (+ row 1))))))
 
-
 (define (check-diagonal-main-block mat symbol)
   (let loop ((i 0))
     (cond ((>= i (- (length mat) 2)) #f)
@@ -189,7 +210,6 @@
                 (= (list-ref (list-ref mat (+ i 2)) (+ i 2)) 0))
            (markPosition mat (+ i 2) (+ i 2) 2))
           (else (loop (+ i 1))))))
-
 
 (define (check-diagonal-secondary-block mat symbol)
   (let loop ((i 0))
@@ -202,13 +222,16 @@
             (else (loop (+ i 1)))))))
 
 
+;; =============================
+;; 9. Verificación de Línea Completa
+;; =============================
+
 ;; Verifica si hay una línea completa de tres
 (define (lineComplete mat)
   (or (check-line-complete-horizontal mat)
       (check-line-complete-vertical mat)
       (check-line-complete-diagonal-main mat)
       (check-line-complete-diagonal-secondary mat)))
-
 
 ;; Verifica si hay una línea completa horizontal
 (define (check-line-complete-horizontal mat)
@@ -226,7 +249,6 @@
            #t)
           (else (loop (+ col 1))))))
 
-
 ;; Verifica si hay una línea completa vertical
 (define (check-line-complete-vertical mat)
   (let loop ((col 0))
@@ -243,7 +265,6 @@
            #t)
           (else (loop (+ row 1))))))
 
-
 ;; Verifica si hay una línea completa diagonal principal
 (define (check-line-complete-diagonal-main mat)
   (let loop ((i 0))
@@ -253,7 +274,6 @@
                 (= (list-ref (list-ref mat (+ i 2)) (+ i 2)) 1))
            #t)
           (else (loop (+ i 1))))))
-
 
 ;; Verifica si hay una línea completa diagonal secundaria
 (define (check-line-complete-diagonal-secondary mat)
@@ -267,6 +287,10 @@
             (else (loop (+ i 1)))))))
 
 
+;; =============================
+;; 10. Movimiento Mejor
+;; =============================
+
 ;; Hace el mejor movimiento disponible (por simplicidad, el primero vacío encontrado)
 (define (make-best-move mat)
   (let loop ((i 0) (j 0))
@@ -276,6 +300,10 @@
            (markPosition mat i j 2))  ; Marca '2' para la máquina
           (else (loop i (+ j 1))))))
 
+
+;; =============================
+;; 11. Ejecución del Juego
+;; =============================
 
 ;; Ejecuta el juego
 (TTT 3 3)
