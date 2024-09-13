@@ -38,9 +38,10 @@
         (display "¡Línea completa! Reiniciando la matriz...\n")
         (playerTurn (createMat (length mat) (length (list-ref mat 0))) i j)) ; Reinicia la matriz y pasa las coordenadas
       (machineTurn (markPosition mat i j 1)))) ; Pasa el nuevo tablero a machineTurn
+
 (define (machineTurn mat)
   (display "Turno de la máquina:\n")
-  (printMat (greedyMove mat)) ; Llamada directa a greedyMove
+  (greedyMove mat) ; Llamada directa a greedyMove
   (if (lineComplete (greedyMove mat)) ; Llamada directa a greedyMove para evaluar new-mat
       (begin
         (display "¡Línea completa! Reiniciando la matriz...\n")
