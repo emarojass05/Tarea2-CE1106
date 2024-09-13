@@ -4,12 +4,11 @@
 ;; 1. Funciones Principales
 ;; =======================
 
+(provide TTT playerTurn createMat)
+
+
 (define (TTT m n)
-  (cond ((< m 3) (display "El mínimo de la matriz es 3x3"))
-        ((< n 3) (display "El mínimo de la matriz es 3x3"))
-        ((> n 10) (display "El máximo de la matriz es 10x10"))
-        ((> m 10) (display "El máximo de la matriz es 10x10"))
-        (else (playerTurn (createMat m n)))))
+       (createMat m n))
 
 
 ;; =======================
@@ -31,31 +30,22 @@
 ;; 3. Turnos del Jugador y Máquina
 ;; ==========================
 
-(define (playerTurn mat)
-  (display "Turno del jugador:\n")
-  (display "Ingrese la fila (1-indexado):\n")
-  (let ((i (sub1 (read))))  ; Convertir de 1-indexado a 0-indexado
-    (display "Ingrese la columna (1-indexado):\n")
-    (let ((j (sub1 (read))))  ; Convertir de 1-indexado a 0-indexado
-      (let ((new-mat (markPosition mat i j 1)))  ; Marcamos con '1' para el jugador
-        (display "\nTablero después del turno del jugador:\n")
-        (printMat new-mat)
-        (if (lineComplete new-mat)
-            (begin
-              (display "¡Línea completa! Reiniciando la matriz...\n")
-              (playerTurn (createMat (length new-mat) (length (list-ref new-mat 0)))))  ; Reinicia la matriz
-            (machineTurn new-mat))))))
-
+(define (playerTurn mat i j)
+  (display "\nTablero después del turno del jugador:\n")
+  (printMat (markPosition mat i j 1)) ; Llamada directa a la función para obtener new-mat
+  (if (lineComplete (markPosition mat i j 1)) ; Llamada directa a la función para evaluar new-mat
+      (begin
+        (display "¡Línea completa! Reiniciando la matriz...\n")
+        (playerTurn (createMat (length mat) (length (list-ref mat 0))) i j)) ; Reinicia la matriz y pasa las coordenadas
+      (machineTurn (markPosition mat i j 1)))) ; Pasa el nuevo tablero a machineTurn
 (define (machineTurn mat)
   (display "Turno de la máquina:\n")
-  (let ((new-mat (greedyMove mat)))  ; Usamos el algoritmo codicioso para el turno de la máquina
-    (display "\nTablero después del turno de la máquina:\n")
-    (printMat new-mat)
-    (if (lineComplete new-mat)
-        (begin
-          (display "¡Línea completa! Reiniciando la matriz...\n")
-          (playerTurn (createMat (length new-mat) (length (list-ref new-mat 0)))))  ; Reinicia la matriz
-        (playerTurn new-mat))))
+  (printMat (greedyMove mat)) ; Llamada directa a greedyMove
+  (if (lineComplete (greedyMove mat)) ; Llamada directa a greedyMove para evaluar new-mat
+      (begin
+        (display "¡Línea completa! Reiniciando la matriz...\n")
+        (playerTurn (createMat (length mat) (length (list-ref mat 0))))) ; Reinicia la matriz
+     mat)) ; No hace nada si no hay línea completa
 
 
 ;; ============================
@@ -334,11 +324,3 @@
            (markPosition mat i j 2))  ; Marca '2' para la máquina
           (else (loop i (+ j 1))))))
 
-
-
-;; =============================
-;; 11. Ejecución del Juego
-;; =============================
-
-;; Ejecuta el juego
-(TTT 3 3)
