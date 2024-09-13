@@ -24,6 +24,34 @@
         (send dc set-brush (new brush% (color cuadro)))  ;; Establecer el color del pincel
         (send dc draw-rectangle x y ancho-alto ancho-alto)))))  ;; Dibujar y rellenar el rectángulo
 
+;; Función para dibujar una "X" en una casilla
+(define (dibujar-X dc x y size)
+  ;; Dibujar dos líneas cruzadas (una "X") dentro de la casilla
+  (send dc set-pen "black" 2 'solid)  ;; Establecer el color y grosor de la línea
+  (send dc draw-line x y (+ x size) (+ y size))  ;; Línea diagonal de esquina superior izquierda a esquina inferior derecha
+  (send dc draw-line x (+ y size) (+ x size) y))  ;; Línea diagonal de esquina inferior izquierda a esquina superior derecha
+
+;; Modificación del mouse-event-handler para dibujar la X
+(define (mouse-event-handler event m n ancho-alto dc tablero)
+  (let ((x (send event get-x))  ;; Obtener la coordenada x del clic
+        (y (send event get-y))) ;; Obtener la coordenada y del clic
+    (define fila (quotient y ancho-alto))  ;; Calcular la fila basada en la coordenada y
+    (define columna (quotient x ancho-alto))  ;; Calcular la columna basada en la coordenada x
+    (when (and (< fila m) (< columna n))  ;; Asegurarse de que el clic esté dentro del tablero
+      (printf "Coordenada del cuadro clicado: (~a, ~a)\n" columna fila)
+      (dibujar-X dc (* columna ancho-alto) (* fila ancho-alto) ancho-alto)  ;; Dibujar una "X" en la casilla clicada
+      (replace-matrix (playerTurn my-matrix fila columna)))))  ;; Actualizar la matriz del juego
+
+;; Crear una subclase de canvas% para manejar eventos de mouse, pasando m, n, el tamaño del cuadro y el tablero
+(define my-canvas%
+  (class canvas%
+    (init-field m n ancho-alto tablero)  ;; Se añade tablero como un campo
+    (define/override (on-event event)
+      (when (send event button-down?)  ;; Detectar clic izquierdo
+        (let ((dc (send this get-dc)))  ;; Obtener el contexto de dibujo
+          (mouse-event-handler event m n ancho-alto dc tablero))))  ;; Pasar tablero al manejador de eventos
+    (super-new)))
+
 ;; Función para obtener el tamaño MxN de la matriz del usuario
 (define (get-matrix-size callback)
   (define dlg (new dialog% (label "Tamaño del tablero")))
@@ -46,30 +74,10 @@
 
   (send dlg show #t))
 
-;; Función para manejar clics de mouse y detectar las coordenadas del cuadro clicado
-(define (mouse-event-handler event m n ancho-alto)
-  (let ((x (send event get-x))
-        (y (send event get-y)))
-    (define fila (quotient y ancho-alto))
-    (define columna (quotient x ancho-alto))
-    (when (and (< fila m) (< columna n))
-      (replace-matrix (playerTurn my-matrix fila columna))
-      (printf "Coordenada del cuadro clicado: (~a, ~a)\n" columna fila))))  ;; Ahora imprime (columna, fila)
-
-;; Crear una subclase de canvas% para manejar eventos de mouse, pasando m, n y el tamaño del cuadro
-(define my-canvas%
-  (class canvas%
-    (init-field m n ancho-alto)
-    (define/override (on-event event)
-      (when (send event button-down?)  ;; Detectar clic izquierdo
-        (mouse-event-handler event m n ancho-alto)))
-    (super-new)))
-
 ;; Función principal para iniciar la aplicación
 (define (start-app)
   (get-matrix-size 
    (lambda (m n)
-     
      
      ;; Crear el marco principal para la aplicación
      (define frame (new frame% (label "TicTacToe")
@@ -81,16 +89,14 @@
 
      ;; Establecer el callback de pintado para el canvas
      (define canvas (new my-canvas% (parent frame)
-                         (m m) (n n) (ancho-alto 80)
+                         (m m) (n n) (ancho-alto 80) (tablero tablero)
                          (paint-callback
                           (lambda (canvas dc)
                             (draw-canvas canvas dc tablero 80)))))
-     
 
      ;; Mostrar el marco
      (send frame show #t)
      (TTT m n))))
-
 
 (define my-matrix (createMat 9 9))
 
@@ -100,4 +106,3 @@
 
 ;; Iniciar la aplicación
 (start-app)
-
