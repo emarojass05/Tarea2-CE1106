@@ -41,12 +41,14 @@
 
 (define (machineTurn mat)
   (display "Turno de la máquina:\n")
-  (greedyMove mat) ; Llamada directa a greedyMove
-  (if (lineComplete (greedyMove mat)) ; Llamada directa a greedyMove para evaluar new-mat
+  (define new-mat (greedyMove mat)) ; Guarda el resultado de greedyMove
+  (printMat new-mat) ; Imprime la matriz después del turno de la máquina
+  (if (lineComplete new-mat) ; Verifica si hay una línea completa
       (begin
         (display "¡Línea completa! Reiniciando la matriz...\n")
-        (playerTurn (createMat (length mat) (length (list-ref mat 0))))) ; Reinicia la matriz
-     mat)) ; No hace nada si no hay línea completa
+        (playerTurn (createMat (length new-mat) (length (list-ref new-mat 0))) 0 0)) ; Reinicia la matriz
+      new-mat)) ; Devuelve la matriz actualizada si no hay línea completa
+
 
 
 ;; ============================
@@ -66,7 +68,13 @@
 
 
 (define (printMat mat)
-  (for-each (lambda (row) (display row) (newline)) mat))
+  (cond
+    [(empty? mat) '()] ; Caso base: cuando la matriz está vacía
+    [else
+     (display (first mat)) ; Muestra la primera fila
+     (newline)
+     (printMat (rest mat))])) ; Llama recursivamente para el resto de las filas
+
 
 
 ;; =============================
@@ -105,75 +113,104 @@
 ;; Verifica una alineación horizontal para ganar o bloquear
 ;; Verifica una alineación horizontal para ganar
 (define (check-horizontal-alignment mat symbol)
-  (define (loop row)
-    (cond ((>= row (length mat)) #f)
-          ((check-horizontal-line mat row symbol)
-           (displayln "WIN")
-           #t)
-          (else (loop (+ row 1)))))
-  (loop 0))
+  (define (recursive-check row mat symbol)
+    (cond
+      [(>= row (length mat)) #f] ; Caso base: si revisamos todas las filas, devolvemos #f
+      [(check-horizontal-line mat row symbol) 
+       (displayln "WIN") 
+       #t] ; Si encontramos una alineación ganadora, devolvemos #t
+      [else (recursive-check (+ row 1) mat symbol)])) ; Recurre para la siguiente fila
+  (recursive-check 0 mat symbol)) ; Comienza la recursión desde la fila 0
+
 
 
 
 (define (check-horizontal-line mat row symbol)
-  (define (loop col n)
-    (cond ((>= col (- n 2)) #f)
-          ((and (= (list-ref (list-ref mat row) col) symbol)
-                (= (list-ref (list-ref mat row) (+ col 1)) symbol)
-                (= (list-ref (list-ref mat row) (+ col 2)) 0))
-           (markPosition mat row (+ col 2) 2))
-          (else (loop (+ col 1) n))))
-  (loop 0 (length (list-ref mat 0))))
+  (define (recursive-check col n)
+    (cond
+      ;; Caso base: Si col está fuera del rango permitido
+      ((>= col (- n 2)) #f)
+      ;; Caso de éxito: Encontramos una alineación horizontal
+      ((and (= (list-ref (list-ref mat row) col) symbol)
+            (= (list-ref (list-ref mat row) (+ col 1)) symbol)
+            (= (list-ref (list-ref mat row) (+ col 2)) 0))
+       (markPosition mat row (+ col 2) 2))  ; Marca la posición y retorna el resultado
+      ;; Caso recursivo: Recorremos a la siguiente columna
+      (else (recursive-check (+ col 1) n))))
+  (recursive-check 0 (length (list-ref mat row))))
+
 
 
 ;; Verifica una alineación vertical para ganar o bloquear
 (define (check-vertical-alignment mat symbol)
-  (define (loop col)
-    (cond ((>= col (length (list-ref mat 0))) #f)
-          ((check-vertical-line mat col symbol)
-           (display "WIN")
-           (newline)
-           mat)
-          (else (loop (+ col 1)))))
-  (loop 0))
+  (define (recursive-check col)
+    (cond
+      ;; Caso base: Si col está fuera del rango permitido
+      ((>= col (length (list-ref mat 0))) #f)
+      ;; Caso de éxito: Encontramos una alineación vertical
+      ((check-vertical-line mat col symbol)
+       (display "WIN")
+       (newline)
+       mat)
+      ;; Caso recursivo: Recorremos a la siguiente columna
+      (else (recursive-check (+ col 1)))))
+  (recursive-check 0))
+
 
 
 (define (check-vertical-line mat col symbol)
-  (define (loop row n)
-    (cond ((>= row (- n 2)) #f)
-          ((and (= (list-ref (list-ref mat row) col) symbol)
-                (= (list-ref (list-ref mat (+ row 1)) col) symbol)
-                (= (list-ref (list-ref mat (+ row 2)) col) 0))
-           (markPosition mat (+ row 2) col 2)
-           #t)
-          (else (loop (+ row 1) n))))
-  (loop 0 (length mat)))
+  (define (recursive-check row n)
+    (cond
+      ;; Caso base: Si row está fuera del rango permitido
+      ((>= row (- n 2)) #f)
+      ;; Caso de éxito: Encontramos una alineación vertical
+      ((and (= (list-ref (list-ref mat row) col) symbol)
+            (= (list-ref (list-ref mat (+ row 1)) col) symbol)
+            (= (list-ref (list-ref mat (+ row 2)) col) 0))
+       (markPosition mat (+ row 2) col 2)
+       #t)
+      ;; Caso recursivo: Recorremos a la siguiente fila
+      (else (recursive-check (+ row 1) n))))
+  (recursive-check 0 (length mat)))
+
 
 
 
 ;; Verifica una alineación diagonal principal para ganar o bloquear
 (define (check-diagonal-main-alignment mat symbol)
-  (define (loop i)
-    (cond ((>= i (- (length mat) 2)) #f)
-          ((and (= (list-ref (list-ref mat i) i) symbol)
-                (= (list-ref (list-ref mat (+ i 1)) (+ i 1)) symbol)
-                (= (list-ref (list-ref mat (+ i 2)) (+ i 2)) 0))
-           (markPosition mat (+ i 2) (+ i 2) 2))
-          (else (loop (+ i 1)))))
-  (loop 0))
+  (define (recursive-check i)
+    (cond
+      ;; Caso base: Si i está fuera del rango permitido
+      ((>= i (- (length mat) 2)) #f)
+      ;; Caso de éxito: Encontramos una alineación diagonal principal
+      ((and (= (list-ref (list-ref mat i) i) symbol)
+            (= (list-ref (list-ref mat (+ i 1)) (+ i 1)) symbol)
+            (= (list-ref (list-ref mat (+ i 2)) (+ i 2)) 0))
+       (markPosition mat (+ i 2) (+ i 2) 2)
+       #t)
+      ;; Caso recursivo: Recorremos al siguiente índice
+      (else (recursive-check (+ i 1)))))
+  (recursive-check 0))
+
 
 
 
 ;; Verifica una alineación diagonal secundaria para ganar o bloquear
 (define (check-diagonal-secondary-alignment mat symbol)
-  (define (loop i max)
-    (cond ((>= i (- (length mat) 2)) #f)
-          ((and (= (list-ref (list-ref mat i) (- max i)) symbol)
-                (= (list-ref (list-ref mat (+ i 1)) (- max (+ i 1))) symbol)
-                (= (list-ref (list-ref mat (+ i 2)) (- max (+ i 2))) 0))
-           (markPosition mat (+ i 2) (- max (+ i 2)) 2))
-          (else (loop (+ i 1) max))))
-  (loop 0 (- (length (list-ref mat 0)) 1)))
+  (define (recursive-check i max)
+    (cond
+      ;; Caso base: Si i está fuera del rango permitido
+      ((>= i (- (length mat) 2)) #f)
+      ;; Caso de éxito: Encontramos una alineación diagonal secundaria
+      ((and (= (list-ref (list-ref mat i) (- max i)) symbol)
+            (= (list-ref (list-ref mat (+ i 1)) (- max (+ i 1))) symbol)
+            (= (list-ref (list-ref mat (+ i 2)) (- max (+ i 2))) 0))
+       (markPosition mat (+ i 2) (- max (+ i 2)) 2)
+       #t)
+      ;; Caso recursivo: Recorremos al siguiente índice
+      (else (recursive-check (+ i 1) max))))
+  (recursive-check 0 (- (length (list-ref mat 0)) 1)))
+
 
 
 
@@ -181,14 +218,18 @@
 ;; 8. Verificación de Bloqueos
 ;; ===============================
 
-;; Define las funciones de verificación de bloqueos
-;; Define las funciones de verificación de bloqueos
+
 (define (check-horizontal-block mat symbol)
-  (define (loop row)
-    (cond ((>= row (length mat)) #f)
-          ((check-horizontal-line-block mat row symbol))  ; Devuelve la matriz actualizada
-          (else (loop (+ row 1)))))
-  (loop 0))
+  (define (recursive-check row)
+    (cond
+      ;; Caso base: Si hemos revisado todas las filas
+      ((>= row (length mat)) #f)
+      ;; Caso de éxito: Encontramos un bloqueo horizontal
+      ((check-horizontal-line-block mat row symbol))
+      ;; Caso recursivo: Recorremos la siguiente fila
+      (else (recursive-check (+ row 1)))))
+  (recursive-check 0))
+
 
 
 (define (check-horizontal-line-block mat row symbol)
@@ -206,11 +247,16 @@
 
 
 (define (check-vertical-block mat symbol)
-  (define (loop col)
-    (cond ((>= col (length (list-ref mat 0))) #f)  ; Devuelve #f si no se encuentra un bloqueo
-          ((check-vertical-line-block mat col symbol))  ; Devuelve la matriz actualizada
-          (else (loop (+ col 1)))))
-  (loop 0))
+  (define (recursive-check col)
+    (cond
+      ;; Caso base: si hemos revisado todas las columnas
+      ((>= col (length (list-ref mat 0))) #f)
+      ;; Caso de éxito: si encontramos un bloqueo vertical
+      ((check-vertical-line-block mat col symbol))  ; Devuelve #t si se encontró un bloqueo
+      ;; Caso recursivo: revisamos la siguiente columna
+      (else (recursive-check (+ col 1)))))
+  (recursive-check 0))
+
 
 
 ;; Verifica un bloqueo vertical
@@ -242,6 +288,7 @@
   (loop 0 (length mat)))
 
 
+
 ;; Verifica un bloqueo diagonal secundaria
 (define (check-diagonal-secondary-block mat symbol)
   (define (loop i n max)
@@ -269,42 +316,58 @@
 
 ;; Verifica si hay una línea completa horizontal
 (define (check-line-complete-horizontal mat)
-  (define (loop row)
-    (cond ((>= row (length mat)) #f)
-          ((check-horizontal-line-complete mat row) #t)
-          (else (loop (+ row 1)))))
-  (loop 0))
+  (define (recursive-check row)
+    (cond
+      ;; Caso base: hemos revisado todas las filas
+      ((>= row (length mat)) #f)
+      ;; Caso de éxito: si encontramos una línea completa horizontal
+      ((check-horizontal-line-complete mat row) #t)
+      ;; Caso recursivo: revisamos la siguiente fila
+      (else (recursive-check (+ row 1)))))
+  (recursive-check 0))
+
 
 
 (define (check-horizontal-line-complete mat row)
-  (define (loop col n)
-    (cond ((>= col (- n 2)) #f)
-          ((and (= (list-ref (list-ref mat row) col) 1)
-                (= (list-ref (list-ref mat row) (+ col 1)) 1)
-                (= (list-ref (list-ref mat row) (+ col 2)) 1))
-           #t)
-          (else (loop (+ col 1) n))))
-  (loop 0 (length (list-ref mat 0))))
+  (define (recursive-check col)
+    (let ((n (length (list-ref mat 0))))
+      (cond
+        ;; Caso base: hemos llegado al final de la fila sin encontrar una línea completa
+        ((>= col (- n 2)) #f)
+        ;; Caso de éxito: encontramos una línea completa horizontal
+        ((and (= (list-ref (list-ref mat row) col) 1)
+              (= (list-ref (list-ref mat row) (+ col 1)) 1)
+              (= (list-ref (list-ref mat row) (+ col 2)) 1))
+         #t)
+        ;; Caso recursivo: revisamos la siguiente columna
+        (else (recursive-check (+ col 1))))))
+  (recursive-check 0))
+
 
 
 ;; Verifica si hay una línea completa vertical
 (define (check-line-complete-vertical mat)
-  (define (loop col n)
-    (cond ((>= col n) #f)
-          ((check-vertical-line-complete mat col) #t)
-          (else (loop (+ col 1) n))))
-  (loop 0 (length (list-ref mat 0))))
+  (define (check-column col)
+    (if (>= col (length (list-ref mat 0)))
+        #f
+        (if (check-vertical-line-complete mat col)
+            #t
+            (check-column (+ col 1)))))
+  (check-column 0))
+
 
 
 (define (check-vertical-line-complete mat col)
-  (define (loop row n)
-    (cond ((>= row (- n 2)) #f)
-          ((and (= (list-ref (list-ref mat row) col) 1)
-                (= (list-ref (list-ref mat (+ row 1)) col) 1)
-                (= (list-ref (list-ref mat (+ row 2)) col) 1))
-           #t)
-          (else (loop (+ row 1) n))))
-  (loop 0 (length mat)))
+  (define (check-row row)
+    (cond
+      ((>= row (- (length mat) 2)) #f)
+      ((and (= (list-ref (list-ref mat row) col) 1)
+            (= (list-ref (list-ref mat (+ row 1)) col) 1)
+            (= (list-ref (list-ref mat (+ row 2)) col) 1))
+       #t)
+      (else (check-row (+ row 1)))))
+  (check-row 0))
+
 
 
 ;; Verifica si hay una línea completa diagonal principal
