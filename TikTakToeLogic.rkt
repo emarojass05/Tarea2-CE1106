@@ -25,6 +25,15 @@
       '()
       (cons 0 (createRow (- n 1)))))
 
+;; ==========================
+
+;;2.5
+(define (track-block-position mat row col)
+  (displayln (string-append "Posición del último bloqueo: (" 
+                            (number->string row) ", " 
+                            (number->string col) ")"))
+  mat)  ;; Devuelve la matriz sin cambios
+;;=============================
 
 ;; ==========================
 ;; 3. Turnos del Jugador y Máquina
@@ -238,9 +247,9 @@
           ((and (= (list-ref (list-ref mat row) col) symbol)
                 (= (list-ref (list-ref mat row) (+ col 1)) symbol)
                 (= (list-ref (list-ref mat row) (+ col 2)) 0))
-           (display "BLOQUEO HORIZONTAL\n")  ; Imprimir "BLOQUEO HORIZONTAL"
-           (printMat mat)  ; Imprimir la matriz actualizada
-           (markPosition mat row (+ col 2) 2))
+           (display "BLOQUEO HORIZONTAL\n")
+           (track-block-position mat row (+ col 2))  ; Almacena la posición del bloqueo
+           (markPosition mat row (+ col 2) 2))  ; Marca el bloqueo en la matriz
           (else (check (+ col 1) n))))
   (check 0 (length (list-ref mat 0))))
 
@@ -265,7 +274,8 @@
           ((and (= (list-ref (list-ref mat row) col) symbol)
                 (= (list-ref (list-ref mat (+ row 1)) col) symbol)
                 (= (list-ref (list-ref mat (+ row 2)) col) 0))
-           (display "BLOQUEO\n")  ; Imprimir "BLOQUEO"
+           (display "BLOQUEO VERTICAL\n")
+           (track-block-position mat (+ row 2) col)  ; Almacena la posición del bloqueo
            (markPosition mat (+ row 2) col 2))
           (else (check (+ row 1) n))))
   (check 0 (length mat)))
@@ -280,24 +290,27 @@
           ((and (= (list-ref (list-ref mat i) i) symbol)
                 (= (list-ref (list-ref mat (+ i 1)) (+ i 1)) symbol)
                 (= (list-ref (list-ref mat (+ i 2)) (+ i 2)) 0))
-           (display "BLOQUEO\n")  ; Imprimir "BLOQUEO"
+           (display "BLOQUEO DIAGONAL PRINCIPAL\n")
+           (track-block-position mat (+ i 2) (+ i 2))  ; Almacena la posición del bloqueo
            (markPosition mat (+ i 2) (+ i 2) 2))
           (else (check (+ i 1) n))))
   (check 0 (length mat)))
 
 
 
-;; Verifica un bloqueo diagonal secundaria
+
 (define (check-diagonal-secondary-block mat symbol)
   (define (check i n max)
     (cond ((>= i (- n 2)) #f)
           ((and (= (list-ref (list-ref mat i) (- max i)) symbol)
                 (= (list-ref (list-ref mat (+ i 1)) (- max (+ i 1))) symbol)
                 (= (list-ref (list-ref mat (+ i 2)) (- max (+ i 2))) 0))
-           (display "BLOQUEO\n")  ; Imprimir "BLOQUEO"
+           (display "BLOQUEO DIAGONAL SECUNDARIO\n")
+           (track-block-position mat (+ i 2) (- max (+ i 2)))  ; Almacena la posición del bloqueo
            (markPosition mat (+ i 2) (- max (+ i 2)) 2))
           (else (check (+ i 1) n max))))
   (check 0 (length mat) (- (length (list-ref mat 0)) 1)))
+
 
 ;; =============================
 ;; 9. Verificación de Línea Completa
