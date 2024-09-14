@@ -5,7 +5,7 @@
 
 ;; Definir colores
 (define gris (make-object color% 102 102 102))  ;; Color gris
-(define blanco (make-object color% 255 255 255))
+(define blanco (make-object color% 255 255 255))  ;; Color blanco
 
 ;; Función para generar una matriz MxN para el tablero
 (define (crear-tablero m n)
@@ -17,8 +17,8 @@
 (define (draw-canvas canvas dc tablero ancho-alto)
   (let* ((m (length tablero))  ;; Número de filas
          (n (length (first tablero))))  ;; Número de columnas
-    (for ((fila tablero) (v (in-range 0 m)))
-      (for ((cuadro fila) (h (in-range 0 n)))
+    (for ((fila tablero) (v (in-range m)))
+      (for ((cuadro fila) (h (in-range n)))
         (define x (* h ancho-alto))  ;; Calcular la posición x
         (define y (* v ancho-alto))  ;; Calcular la posición y
         (send dc set-brush (new brush% (color cuadro)))  ;; Establecer el color del pincel
@@ -35,7 +35,7 @@
   (send dc set-pen "black" 2 'solid)  
   (send dc draw-ellipse x y size size)) 
 
-;; Modificación del mouse-event-handler para dibujar la X
+;; Manejo de eventos de mouse para dibujar en el canvas
 (define (mouse-event-handler event m n ancho-alto dc tablero)
   (let ((x (send event get-x))  ;; Obtener la coordenada x del clic
         (y (send event get-y))) ;; Obtener la coordenada y del clic
@@ -47,17 +47,17 @@
       (replace-matrix (playerTurn my-matrix fila columna) dc)
       (dibujar-circulos-desde-matriz my-matrix dc ancho-alto))))  ;; Actualizar la matriz y redibujar
 
-;; Crear una subclase de canvas% para manejar eventos de mouse, pasando m, n, el tamaño del cuadro y el tablero
+;; Crear una subclase de canvas% para manejar eventos de mouse
 (define my-canvas%
   (class canvas%
-    (init-field m n ancho-alto tablero)  ;; Se añade tablero como un campo
+    (init-field m n ancho-alto tablero)  ;; Inicializar campos para tamaño del tablero y otros
     (define/override (on-event event)
       (when (send event button-down?)  ;; Detectar clic izquierdo
         (let ((dc (send this get-dc)))  ;; Obtener el contexto de dibujo
-          (mouse-event-handler event m n ancho-alto dc tablero))))  ;; Pasar tablero al manejador de eventos
+          (mouse-event-handler event m n ancho-alto dc tablero))))  ;; Manejar el evento del mouse
     (super-new)))
 
-;; Función para obtener el tamaño MxN de la matriz del usuario
+;; Función para obtener el tamaño MxN del tablero del usuario
 (define (get-matrix-size callback)
   (define dlg (new dialog% (label "Tamaño del tablero")))
   (define m-input (new text-field% (label "Filas (3-8): ") (parent dlg)))
@@ -100,17 +100,17 @@
                             (draw-canvas canvas dc tablero 80)))))
 
      ;; Mostrar el marco
-     (send frame show #t)
-     (TTT m n))))
+     (send frame show #t))))
 
-(define my-matrix (createMat 9 9))
+(define my-matrix (createMat 3 3)) ; Crea una matriz 3x3
+(playerTurn my-matrix 1 1) ; Llama a playerTurn en la posición (1,1)
 
-;; Función para reemplazar la matriz completa
+
+;; Función para reemplazar la matriz completa con una nueva
 (define (replace-matrix new-matrix dc)
   (set! my-matrix new-matrix))
 
-;; Función para recorrer my-matrix y dibujar un círculo donde haya un 2
-;; Función para recorrer my-matrix y dibujar un círculo donde haya un 2
+;; Función para recorrer my-matrix y dibujar un círculo en las casillas con valor 2
 (define (dibujar-circulos-desde-matriz my-matrix dc ancho-alto)
   (for* ([v (in-range (length my-matrix))]  ;; Iterar sobre cada fila
          [h (in-range (length (first my-matrix)))]  ;; Iterar sobre cada columna
@@ -118,7 +118,6 @@
     (let* ((x (* h ancho-alto))  ;; Calcular la posición x
            (y (* v ancho-alto)))  ;; Calcular la posición y
       (dibujar-circulo dc x y ancho-alto))))  ;; Dibujar el círculo en esa posición
- ;; Dibujar el círculo en esa posición
 
 ;; Iniciar la aplicación
 (start-app)

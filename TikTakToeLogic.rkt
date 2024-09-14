@@ -4,7 +4,7 @@
 ;; 1. Funciones Principales
 ;; =======================
 
-(provide TTT playerTurn createMat )
+(provide TTT playerTurn createMat replace-matrix )
 
 
 (define (TTT m n)
@@ -52,6 +52,8 @@
     
   (find-moves 0 0))  ; Comienza desde la primera fila y columna
 
+(define (replace-matrix mat row col value)
+  (list-set mat row (list-set (list-ref mat row) col value)))
 
 ;;=============================
 
