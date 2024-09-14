@@ -54,8 +54,8 @@
 ;; ============================
 
 (define (markPosition mat row col symbol)
-  (let ((new-row (list-set (list-ref mat row) col symbol)))
-    (list-set mat row new-row)))
+  (list-set mat row (list-set (list-ref mat row) col symbol)))
+
 ; Devuelve la matriz original si la posición está fuera de los límites
 
 (define (list-set lst index value)
@@ -105,69 +105,76 @@
 ;; Verifica una alineación horizontal para ganar o bloquear
 ;; Verifica una alineación horizontal para ganar
 (define (check-horizontal-alignment mat symbol)
-  (let loop ((row 0))
+  (define (loop row)
     (cond ((>= row (length mat)) #f)
-          ((let ((result (check-horizontal-line mat row symbol)))
-             (if result
-                 (begin
-                   (displayln "WIN")
-                   result)
-                 (loop (+ row 1)))))
-          (else #f))))
+          ((check-horizontal-line mat row symbol)
+           (displayln "WIN")
+           #t)
+          (else (loop (+ row 1)))))
+  (loop 0))
+
 
 
 (define (check-horizontal-line mat row symbol)
-  (let ((n (length (list-ref mat 0))))
-    (let loop ((col 0))
-      (cond ((>= col (- n 2)) #f)
-            ((and (= (list-ref (list-ref mat row) col) symbol)
-                  (= (list-ref (list-ref mat row) (+ col 1)) symbol)
-                  (= (list-ref (list-ref mat row) (+ col 2)) 0))
-             (markPosition mat row (+ col 2) 2))
-            (else (loop (+ col 1)))))))
+  (define (loop col n)
+    (cond ((>= col (- n 2)) #f)
+          ((and (= (list-ref (list-ref mat row) col) symbol)
+                (= (list-ref (list-ref mat row) (+ col 1)) symbol)
+                (= (list-ref (list-ref mat row) (+ col 2)) 0))
+           (markPosition mat row (+ col 2) 2))
+          (else (loop (+ col 1) n))))
+  (loop 0 (length (list-ref mat 0))))
+
 
 ;; Verifica una alineación vertical para ganar o bloquear
 (define (check-vertical-alignment mat symbol)
-  (let loop ((col 0))
+  (define (loop col)
     (cond ((>= col (length (list-ref mat 0))) #f)
           ((check-vertical-line mat col symbol)
-           (begin (display "WIN") (newline) mat))  ; Imprime "WIN" y luego retorna la matriz
-          (else (loop (+ col 1))))))
+           (display "WIN")
+           (newline)
+           mat)
+          (else (loop (+ col 1)))))
+  (loop 0))
+
 
 (define (check-vertical-line mat col symbol)
-  (let ((n (length mat)))
-    (let loop ((row 0))
-      (cond ((>= row (- n 2)) #f)
-            ((and (= (list-ref (list-ref mat row) col) symbol)
-                  (= (list-ref (list-ref mat (+ row 1)) col) symbol)
-                  (= (list-ref (list-ref mat (+ row 2)) col) 0))
-             (markPosition mat (+ row 2) col 2)
-             #t)  ; Indica que se encontró una alineación
-            (else (loop (+ row 1)))))))
+  (define (loop row n)
+    (cond ((>= row (- n 2)) #f)
+          ((and (= (list-ref (list-ref mat row) col) symbol)
+                (= (list-ref (list-ref mat (+ row 1)) col) symbol)
+                (= (list-ref (list-ref mat (+ row 2)) col) 0))
+           (markPosition mat (+ row 2) col 2)
+           #t)
+          (else (loop (+ row 1) n))))
+  (loop 0 (length mat)))
+
 
 
 ;; Verifica una alineación diagonal principal para ganar o bloquear
 (define (check-diagonal-main-alignment mat symbol)
-  (let ((n (length mat)))
-    (let loop ((i 0))
-      (cond ((>= i (- n 2)) #f)
-            ((and (= (list-ref (list-ref mat i) i) symbol)
-                  (= (list-ref (list-ref mat (+ i 1)) (+ i 1)) symbol)
-                  (= (list-ref (list-ref mat (+ i 2)) (+ i 2)) 0))
-             (markPosition mat (+ i 2) (+ i 2) 2))
-            (else (loop (+ i 1)))))))
+  (define (loop i)
+    (cond ((>= i (- (length mat) 2)) #f)
+          ((and (= (list-ref (list-ref mat i) i) symbol)
+                (= (list-ref (list-ref mat (+ i 1)) (+ i 1)) symbol)
+                (= (list-ref (list-ref mat (+ i 2)) (+ i 2)) 0))
+           (markPosition mat (+ i 2) (+ i 2) 2))
+          (else (loop (+ i 1)))))
+  (loop 0))
+
+
 
 ;; Verifica una alineación diagonal secundaria para ganar o bloquear
 (define (check-diagonal-secondary-alignment mat symbol)
-  (let ((n (length mat))
-        (max (- (length (list-ref mat 0)) 1)))  ; Calcula el índice máximo
-    (let loop ((i 0))
-      (cond ((>= i (- n 2)) #f)
-            ((and (= (list-ref (list-ref mat i) (- max i)) symbol)
-                  (= (list-ref (list-ref mat (+ i 1)) (- max (+ i 1))) symbol)
-                  (= (list-ref (list-ref mat (+ i 2)) (- max (+ i 2))) 0))
-             (markPosition mat (+ i 2) (- max (+ i 2)) 2))
-            (else (loop (+ i 1)))))))
+  (define (loop i max)
+    (cond ((>= i (- (length mat) 2)) #f)
+          ((and (= (list-ref (list-ref mat i) (- max i)) symbol)
+                (= (list-ref (list-ref mat (+ i 1)) (- max (+ i 1))) symbol)
+                (= (list-ref (list-ref mat (+ i 2)) (- max (+ i 2))) 0))
+           (markPosition mat (+ i 2) (- max (+ i 2)) 2))
+          (else (loop (+ i 1) max))))
+  (loop 0 (- (length (list-ref mat 0)) 1)))
+
 
 
 ;; ===============================
@@ -177,14 +184,16 @@
 ;; Define las funciones de verificación de bloqueos
 ;; Define las funciones de verificación de bloqueos
 (define (check-horizontal-block mat symbol)
-  (let loop ((row 0))
+  (define (loop row)
     (cond ((>= row (length mat)) #f)
           ((check-horizontal-line-block mat row symbol))  ; Devuelve la matriz actualizada
-          (else (loop (+ row 1))))))
+          (else (loop (+ row 1)))))
+  (loop 0))
+
 
 (define (check-horizontal-line-block mat row symbol)
-  (let ((n (length (list-ref mat 0))))
-    (let loop ((col 0))
+  (define (loop col)
+    (let ((n (length (list-ref mat 0))))
       (cond ((>= col (- n 2)) #f)
             ((and (= (list-ref (list-ref mat row) col) symbol)
                   (= (list-ref (list-ref mat row) (+ col 1)) symbol)
@@ -192,55 +201,59 @@
              (display "BLOQUEO HORIZONTAL\n")  ; Imprimir "BLOQUEO HORIZONTAL"
              (printMat mat)  ; Imprimir la matriz actualizada
              (markPosition mat row (+ col 2) 2))
-            (else (loop (+ col 1)))))))
-
+            (else (loop (+ col 1))))))
+  (loop 0))
 
 
 (define (check-vertical-block mat symbol)
-  (let loop ((col 0))
-    (cond ((>= col (length (list-ref mat 0))) #f)  ; Devuelve la matriz original si no se encuentra un bloqueo
+  (define (loop col)
+    (cond ((>= col (length (list-ref mat 0))) #f)  ; Devuelve #f si no se encuentra un bloqueo
           ((check-vertical-line-block mat col symbol))  ; Devuelve la matriz actualizada
-          (else (loop (+ col 1))))))
+          (else (loop (+ col 1)))))
+  (loop 0))
+
 
 ;; Verifica un bloqueo vertical
 (define (check-vertical-line-block mat col symbol)
-  (let ((n (length mat)))
-    (let loop ((row 0))
-      (cond ((>= row (- n 2)) #f)
-            ((and (= (list-ref (list-ref mat row) col) symbol)
-                  (= (list-ref (list-ref mat (+ row 1)) col) symbol)
-                  (= (list-ref (list-ref mat (+ row 2)) col) 0))
-             (display "BLOQUEO\n")  ; Imprimir "BLOQUEO"
-             (markPosition mat (+ row 2) col 2))
-            (else (loop (+ row 1)))))))
+  (define (loop row n)
+    (cond ((>= row (- n 2)) #f)
+          ((and (= (list-ref (list-ref mat row) col) symbol)
+                (= (list-ref (list-ref mat (+ row 1)) col) symbol)
+                (= (list-ref (list-ref mat (+ row 2)) col) 0))
+           (display "BLOQUEO\n")  ; Imprimir "BLOQUEO"
+           (markPosition mat (+ row 2) col 2))
+          (else (loop (+ row 1) n))))
+  (loop 0 (length mat)))
+
 
 
 
 
 ;; Verifica un bloqueo diagonal principal
 (define (check-diagonal-main-block mat symbol)
-  (let ((n (length mat)))
-    (let loop ((i 0))
-      (cond ((>= i (- n 2)) #f)
-            ((and (= (list-ref (list-ref mat i) i) symbol)
-                  (= (list-ref (list-ref mat (+ i 1)) (+ i 1)) symbol)
-                  (= (list-ref (list-ref mat (+ i 2)) (+ i 2)) 0))
-             (display "BLOQUEO\n")  ; Imprimir "BLOQUEO"
-             (markPosition mat (+ i 2) (+ i 2) 2))
-            (else (loop (+ i 1)))))))
+  (define (loop i n)
+    (cond ((>= i (- n 2)) #f)
+          ((and (= (list-ref (list-ref mat i) i) symbol)
+                (= (list-ref (list-ref mat (+ i 1)) (+ i 1)) symbol)
+                (= (list-ref (list-ref mat (+ i 2)) (+ i 2)) 0))
+           (display "BLOQUEO\n")  ; Imprimir "BLOQUEO"
+           (markPosition mat (+ i 2) (+ i 2) 2))
+          (else (loop (+ i 1) n))))
+  (loop 0 (length mat)))
+
 
 ;; Verifica un bloqueo diagonal secundaria
 (define (check-diagonal-secondary-block mat symbol)
-  (let ((n (length mat))
-        (max (- (length (list-ref mat 0)) 1)))  ; Calcula el índice máximo
-    (let loop ((i 0))
-      (cond ((>= i (- n 2)) #f)
-            ((and (= (list-ref (list-ref mat i) (- max i)) symbol)
-                  (= (list-ref (list-ref mat (+ i 1)) (- max (+ i 1))) symbol)
-                  (= (list-ref (list-ref mat (+ i 2)) (- max (+ i 2))) 0))
-             (display "BLOQUEO\n")  ; Imprimir "BLOQUEO"
-             (markPosition mat (+ i 2) (- max (+ i 2)) 2))
-            (else (loop (+ i 1)))))))
+  (define (loop i n max)
+    (cond ((>= i (- n 2)) #f)
+          ((and (= (list-ref (list-ref mat i) (- max i)) symbol)
+                (= (list-ref (list-ref mat (+ i 1)) (- max (+ i 1))) symbol)
+                (= (list-ref (list-ref mat (+ i 2)) (- max (+ i 2))) 0))
+           (display "BLOQUEO\n")  ; Imprimir "BLOQUEO"
+           (markPosition mat (+ i 2) (- max (+ i 2)) 2))
+          (else (loop (+ i 1) n max))))
+  (loop 0 (length mat) (- (length (list-ref mat 0)) 1)))
+
 
 
 ;; =============================
@@ -256,60 +269,67 @@
 
 ;; Verifica si hay una línea completa horizontal
 (define (check-line-complete-horizontal mat)
-  (let loop ((row 0))
+  (define (loop row)
     (cond ((>= row (length mat)) #f)
           ((check-horizontal-line-complete mat row) #t)
-          (else (loop (+ row 1))))))
+          (else (loop (+ row 1)))))
+  (loop 0))
+
 
 (define (check-horizontal-line-complete mat row)
-  (let ((n (length (list-ref mat 0))))
-    (let loop ((col 0))
-      (cond ((>= col (- n 2)) #f)
-            ((and (= (list-ref (list-ref mat row) col) 1)
-                  (= (list-ref (list-ref mat row) (+ col 1)) 1)
-                  (= (list-ref (list-ref mat row) (+ col 2)) 1))
-             #t)
-            (else (loop (+ col 1)))))))
+  (define (loop col n)
+    (cond ((>= col (- n 2)) #f)
+          ((and (= (list-ref (list-ref mat row) col) 1)
+                (= (list-ref (list-ref mat row) (+ col 1)) 1)
+                (= (list-ref (list-ref mat row) (+ col 2)) 1))
+           #t)
+          (else (loop (+ col 1) n))))
+  (loop 0 (length (list-ref mat 0))))
+
 
 ;; Verifica si hay una línea completa vertical
 (define (check-line-complete-vertical mat)
-  (let loop ((col 0))
-    (cond ((>= col (length (list-ref mat 0))) #f)
+  (define (loop col n)
+    (cond ((>= col n) #f)
           ((check-vertical-line-complete mat col) #t)
-          (else (loop (+ col 1))))))
+          (else (loop (+ col 1) n))))
+  (loop 0 (length (list-ref mat 0))))
+
 
 (define (check-vertical-line-complete mat col)
-  (let ((n (length mat)))
-    (let loop ((row 0))
-      (cond ((>= row (- n 2)) #f)
-            ((and (= (list-ref (list-ref mat row) col) 1)
-                  (= (list-ref (list-ref mat (+ row 1)) col) 1)
-                  (= (list-ref (list-ref mat (+ row 2)) col) 1))
-             #t)
-            (else (loop (+ row 1)))))))
+  (define (loop row n)
+    (cond ((>= row (- n 2)) #f)
+          ((and (= (list-ref (list-ref mat row) col) 1)
+                (= (list-ref (list-ref mat (+ row 1)) col) 1)
+                (= (list-ref (list-ref mat (+ row 2)) col) 1))
+           #t)
+          (else (loop (+ row 1) n))))
+  (loop 0 (length mat)))
+
 
 ;; Verifica si hay una línea completa diagonal principal
 (define (check-line-complete-diagonal-main mat)
-  (let ((n (length mat)))
-    (let loop ((i 0))
-      (cond ((>= i (- n 2)) #f)
-            ((and (= (list-ref (list-ref mat i) i) 1)
-                  (= (list-ref (list-ref mat (+ i 1)) (+ i 1)) 1)
-                  (= (list-ref (list-ref mat (+ i 2)) (+ i 2)) 1))
-             #t)
-            (else (loop (+ i 1)))))))
+  (define (loop i n)
+    (cond ((>= i (- n 2)) #f)
+          ((and (= (list-ref (list-ref mat i) i) 1)
+                (= (list-ref (list-ref mat (+ i 1)) (+ i 1)) 1)
+                (= (list-ref (list-ref mat (+ i 2)) (+ i 2)) 1))
+           #t)
+          (else (loop (+ i 1) n))))
+  (loop 0 (length mat)))
+
 
 ;; Verifica si hay una línea completa diagonal secundaria
 (define (check-line-complete-diagonal-secondary mat)
-  (let ((n (length mat))
-        (max (- (length (list-ref mat 0)) 1)))  ; Calcula el índice máximo
-    (let loop ((i 0))
-      (cond ((>= i (- n 2)) #f)
-            ((and (= (list-ref (list-ref mat i) (- max i)) 1)
-                  (= (list-ref (list-ref mat (+ i 1)) (- max (+ i 1))) 1)
-                  (= (list-ref (list-ref mat (+ i 2)) (- max (+ i 2))) 1))
-             #t)
-            (else (loop (+ i 1)))))))
+  (define (loop i n max)
+    (cond ((>= i (- n 2)) #f)
+          ((and (= (list-ref (list-ref mat i) (- max i)) 1)
+                (= (list-ref (list-ref mat (+ i 1)) (- max (+ i 1))) 1)
+                (= (list-ref (list-ref mat (+ i 2)) (- max (+ i 2))) 1))
+           #t)
+          (else (loop (+ i 1) n max))))
+  (loop 0 (length mat) (- (length (list-ref mat 0)) 1)))
+
 
 
 ;; =============================
@@ -324,4 +344,3 @@
           ((= (list-ref (list-ref mat i) j) 0)
            (markPosition mat i j 2))  ; Marca '2' para la máquina
           (else (loop i (+ j 1))))))
-
