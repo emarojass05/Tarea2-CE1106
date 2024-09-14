@@ -43,8 +43,9 @@
     (define columna (quotient x ancho-alto))  ;; Calcular la columna basada en la coordenada x
     (when (and (< fila m) (< columna n))  ;; Asegurarse de que el clic esté dentro del tablero
       (printf "Coordenada del cuadro clicado: (~a, ~a)\n" columna fila)
-      (dibujar-X dc (* columna ancho-alto) (* fila ancho-alto) ancho-alto)  ;; Dibujar una "X" en la casilla clicada
-      (replace-matrix (playerTurn my-matrix fila columna)))))  ;; Actualizar la matriz del juego
+      (dibujar-X dc (* columna ancho-alto) (* fila ancho-alto) ancho-alto)
+      (dibujar-circulo dc (* 2 ancho-alto) (* 2 ancho-alto) ancho-alto);; Dibujar una "X" en la casilla clicada
+      (replace-matrix (playerTurn my-matrix fila columna) dc (* columna ancho-alto) (* fila ancho-alto) ancho-alto ))))  ;; Actualizar la matriz del juego
 
 ;; Crear una subclase de canvas% para manejar eventos de mouse, pasando m, n, el tamaño del cuadro y el tablero
 (define my-canvas%
@@ -105,7 +106,8 @@
 (define my-matrix (createMat 9 9))
 
 ;; Función para reemplazar la matriz completa
-(define (replace-matrix new-matrix)
+(define (replace-matrix new-matrix  dc x y size)
+  (dibujar-circulo dc (* y size) (* x size) size)
   (set! my-matrix new-matrix))
 
 ;; Iniciar la aplicación
