@@ -4,7 +4,7 @@
 ;; 1. Funciones Principales
 ;; =======================
 
-(provide TTT playerTurn createMat)
+(provide TTT playerTurn createMat )
 
 
 (define (TTT m n)
@@ -32,7 +32,7 @@
   (displayln (string-append "Posición del último bloqueo: (" 
                             (number->string row) ", " 
                             (number->string col) ")"))
-  mat)  ;; Devuelve la matriz sin cambios
+  (list row col))  ;; Devuelve la matriz sin cambios
 
 
 ;; Función recursiva para rastrear los movimientos de la máquina

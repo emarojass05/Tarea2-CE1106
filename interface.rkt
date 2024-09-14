@@ -44,8 +44,8 @@
     (when (and (< fila m) (< columna n))  ;; Asegurarse de que el clic esté dentro del tablero
       (printf "Coordenada del cuadro clicado: (~a, ~a)\n" columna fila)
       (dibujar-X dc (* columna ancho-alto) (* fila ancho-alto) ancho-alto)
-      (dibujar-circulo dc (* 2 ancho-alto) (* 2 ancho-alto) ancho-alto);; Dibujar una "X" en la casilla clicada
-      (replace-matrix (playerTurn my-matrix fila columna) dc (* columna ancho-alto) (* fila ancho-alto) ancho-alto ))))  ;; Actualizar la matriz del juego
+      (replace-matrix (playerTurn my-matrix fila columna) dc)
+      (dibujar-circulos-desde-matriz my-matrix dc ancho-alto))))  ;; Actualizar la matriz y redibujar
 
 ;; Crear una subclase de canvas% para manejar eventos de mouse, pasando m, n, el tamaño del cuadro y el tablero
 (define my-canvas%
@@ -106,9 +106,19 @@
 (define my-matrix (createMat 9 9))
 
 ;; Función para reemplazar la matriz completa
-(define (replace-matrix new-matrix  dc x y size)
-  (dibujar-circulo dc (* y size) (* x size) size)
+(define (replace-matrix new-matrix dc)
   (set! my-matrix new-matrix))
+
+;; Función para recorrer my-matrix y dibujar un círculo donde haya un 2
+;; Función para recorrer my-matrix y dibujar un círculo donde haya un 2
+(define (dibujar-circulos-desde-matriz my-matrix dc ancho-alto)
+  (for* ([v (in-range (length my-matrix))]  ;; Iterar sobre cada fila
+         [h (in-range (length (first my-matrix)))]  ;; Iterar sobre cada columna
+         #:when (= (list-ref (list-ref my-matrix v) h) 2))  ;; Si el valor es 2
+    (let* ((x (* h ancho-alto))  ;; Calcular la posición x
+           (y (* v ancho-alto)))  ;; Calcular la posición y
+      (dibujar-circulo dc x y ancho-alto))))  ;; Dibujar el círculo en esa posición
+ ;; Dibujar el círculo en esa posición
 
 ;; Iniciar la aplicación
 (start-app)
