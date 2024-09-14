@@ -233,17 +233,17 @@
 
 
 (define (check-horizontal-line-block mat row symbol)
-  (define (loop col)
-    (let ((n (length (list-ref mat 0))))
-      (cond ((>= col (- n 2)) #f)
-            ((and (= (list-ref (list-ref mat row) col) symbol)
-                  (= (list-ref (list-ref mat row) (+ col 1)) symbol)
-                  (= (list-ref (list-ref mat row) (+ col 2)) 0))
-             (display "BLOQUEO HORIZONTAL\n")  ; Imprimir "BLOQUEO HORIZONTAL"
-             (printMat mat)  ; Imprimir la matriz actualizada
-             (markPosition mat row (+ col 2) 2))
-            (else (loop (+ col 1))))))
-  (loop 0))
+  (define (check col n)
+    (cond ((>= col (- n 2)) #f)
+          ((and (= (list-ref (list-ref mat row) col) symbol)
+                (= (list-ref (list-ref mat row) (+ col 1)) symbol)
+                (= (list-ref (list-ref mat row) (+ col 2)) 0))
+           (display "BLOQUEO HORIZONTAL\n")  ; Imprimir "BLOQUEO HORIZONTAL"
+           (printMat mat)  ; Imprimir la matriz actualizada
+           (markPosition mat row (+ col 2) 2))
+          (else (check (+ col 1) n))))
+  (check 0 (length (list-ref mat 0))))
+
 
 
 (define (check-vertical-block mat symbol)
@@ -259,49 +259,45 @@
 
 
 
-;; Verifica un bloqueo vertical
 (define (check-vertical-line-block mat col symbol)
-  (define (loop row n)
+  (define (check row n)
     (cond ((>= row (- n 2)) #f)
           ((and (= (list-ref (list-ref mat row) col) symbol)
                 (= (list-ref (list-ref mat (+ row 1)) col) symbol)
                 (= (list-ref (list-ref mat (+ row 2)) col) 0))
            (display "BLOQUEO\n")  ; Imprimir "BLOQUEO"
            (markPosition mat (+ row 2) col 2))
-          (else (loop (+ row 1) n))))
-  (loop 0 (length mat)))
+          (else (check (+ row 1) n))))
+  (check 0 (length mat)))
 
 
 
 
 
-;; Verifica un bloqueo diagonal principal
 (define (check-diagonal-main-block mat symbol)
-  (define (loop i n)
+  (define (check i n)
     (cond ((>= i (- n 2)) #f)
           ((and (= (list-ref (list-ref mat i) i) symbol)
                 (= (list-ref (list-ref mat (+ i 1)) (+ i 1)) symbol)
                 (= (list-ref (list-ref mat (+ i 2)) (+ i 2)) 0))
            (display "BLOQUEO\n")  ; Imprimir "BLOQUEO"
            (markPosition mat (+ i 2) (+ i 2) 2))
-          (else (loop (+ i 1) n))))
-  (loop 0 (length mat)))
+          (else (check (+ i 1) n))))
+  (check 0 (length mat)))
 
 
 
 ;; Verifica un bloqueo diagonal secundaria
 (define (check-diagonal-secondary-block mat symbol)
-  (define (loop i n max)
+  (define (check i n max)
     (cond ((>= i (- n 2)) #f)
           ((and (= (list-ref (list-ref mat i) (- max i)) symbol)
                 (= (list-ref (list-ref mat (+ i 1)) (- max (+ i 1))) symbol)
                 (= (list-ref (list-ref mat (+ i 2)) (- max (+ i 2))) 0))
            (display "BLOQUEO\n")  ; Imprimir "BLOQUEO"
            (markPosition mat (+ i 2) (- max (+ i 2)) 2))
-          (else (loop (+ i 1) n max))))
-  (loop 0 (length mat) (- (length (list-ref mat 0)) 1)))
-
-
+          (else (check (+ i 1) n max))))
+  (check 0 (length mat) (- (length (list-ref mat 0)) 1)))
 
 ;; =============================
 ;; 9. Verificación de Línea Completa
@@ -372,26 +368,26 @@
 
 ;; Verifica si hay una línea completa diagonal principal
 (define (check-line-complete-diagonal-main mat)
-  (define (loop i n)
+  (define (check i n)
     (cond ((>= i (- n 2)) #f)
           ((and (= (list-ref (list-ref mat i) i) 1)
                 (= (list-ref (list-ref mat (+ i 1)) (+ i 1)) 1)
                 (= (list-ref (list-ref mat (+ i 2)) (+ i 2)) 1))
            #t)
-          (else (loop (+ i 1) n))))
-  (loop 0 (length mat)))
+          (else (check (+ i 1) n))))
+  (check 0 (length mat)))
 
 
 ;; Verifica si hay una línea completa diagonal secundaria
 (define (check-line-complete-diagonal-secondary mat)
-  (define (loop i n max)
+  (define (check i n max)
     (cond ((>= i (- n 2)) #f)
           ((and (= (list-ref (list-ref mat i) (- max i)) 1)
                 (= (list-ref (list-ref mat (+ i 1)) (- max (+ i 1))) 1)
                 (= (list-ref (list-ref mat (+ i 2)) (- max (+ i 2))) 1))
            #t)
-          (else (loop (+ i 1) n max))))
-  (loop 0 (length mat) (- (length (list-ref mat 0)) 1)))
+          (else (check (+ i 1) n max))))
+  (check 0 (length mat) (- (length (list-ref mat 0)) 1)))
 
 
 
@@ -401,9 +397,11 @@
 
 ;; Hace el mejor movimiento disponible (por simplicidad, el primero vacío encontrado)
 (define (make-best-move mat)
-  (let loop ((i 0) (j 0))
+  (define (check i j)
     (cond ((>= i (length mat)) mat)
-          ((>= j (length (list-ref mat 0))) (loop (+ i 1) 0))
+          ((>= j (length (list-ref mat 0))) (check (+ i 1) 0))
           ((= (list-ref (list-ref mat i) j) 0)
            (markPosition mat i j 2))  ; Marca '2' para la máquina
-          (else (loop i (+ j 1))))))
+          (else (check i (+ j 1)))))
+  (check 0 0))
+
