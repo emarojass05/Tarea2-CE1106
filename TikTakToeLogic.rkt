@@ -33,6 +33,26 @@
                             (number->string row) ", " 
                             (number->string col) ")"))
   mat)  ;; Devuelve la matriz sin cambios
+
+
+;; Función recursiva para rastrear los movimientos de la máquina
+(define (trackMove mat)
+  ;; Función recursiva auxiliar para recorrer las filas y columnas
+  (define (find-moves row col)
+    (cond
+      [(>= row (length mat)) mat]  ; Caso base: hemos revisado todas las filas
+      [(>= col (length (list-ref mat row))) (find-moves (+ row 1) 0)]  ; Recorremos a la siguiente fila
+      [(= (list-ref (list-ref mat row) col) 2)  ; Movimiento de la máquina encontrado
+       (begin
+         (displayln (string-append "Movimiento de la máquina en posición: (" 
+                                   (number->string row) ", " 
+                                   (number->string col) ")"))
+         (find-moves row (+ col 1)))]  ; Recorremos a la siguiente columna
+      [else (find-moves row (+ col 1))]))  ; Continúa en la misma fila
+    
+  (find-moves 0 0))  ; Comienza desde la primera fila y columna
+
+
 ;;=============================
 
 ;; ==========================
@@ -51,12 +71,14 @@
 (define (machineTurn mat)
   (display "Turno de la máquina:\n")
   (define new-mat (greedyMove mat)) ; Guarda el resultado de greedyMove
-  (printMat new-mat) ; Imprime la matriz después del turno de la máquina
-  (if (lineComplete new-mat) ; Verifica si hay una línea completa
+  (define updated-mat (trackMove new-mat)) ; Llama a trackMove para registrar e imprimir el movimiento
+  (printMat updated-mat) ; Imprime la matriz después del turno de la máquina
+  (if (lineComplete updated-mat) ; Verifica si hay una línea completa
       (begin
         (display "¡Línea completa! Reiniciando la matriz...\n")
-        (playerTurn (createMat (length new-mat) (length (list-ref new-mat 0))) 0 0)) ; Reinicia la matriz
-      new-mat)) ; Devuelve la matriz actualizada si no hay línea completa
+        (playerTurn (createMat (length updated-mat) (length (list-ref updated-mat 0))) 0 0)) ; Reinicia la matriz
+      updated-mat)) ; Devuelve la matriz actualizada si no hay línea completa
+
 
 
 
