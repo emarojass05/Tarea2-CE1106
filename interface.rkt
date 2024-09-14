@@ -26,10 +26,14 @@
 
 ;; Función para dibujar una "X" en una casilla
 (define (dibujar-X dc x y size)
-  ;; Dibujar dos líneas cruzadas (una "X") dentro de la casilla
   (send dc set-pen "black" 2 'solid)  ;; Establecer el color y grosor de la línea
   (send dc draw-line x y (+ x size) (+ y size))  ;; Línea diagonal de esquina superior izquierda a esquina inferior derecha
   (send dc draw-line x (+ y size) (+ x size) y))  ;; Línea diagonal de esquina inferior izquierda a esquina superior derecha
+
+;; Función para dibujar un círculo en una casilla
+(define (dibujar-circulo dc x y size)
+  (send dc set-pen "black" 2 'solid)  
+  (send dc draw-ellipse x y size size)) 
 
 ;; Modificación del mouse-event-handler para dibujar la X
 (define (mouse-event-handler event m n ancho-alto dc tablero)
